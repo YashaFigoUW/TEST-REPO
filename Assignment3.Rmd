@@ -1,0 +1,250 @@
+---
+output:
+  word_document: default
+  html_document: default
+---
+Yasha Figo 
+Lesson 3 Assignment
+
+----------------------------------------
+1.	Analyzing Used Car Prices
+----------------------------------------
+
+a) Load the data
+
+```{r}
+rm(list = ls())
+cars <- read.csv("Cars 2005.csv")
+str(cars)
+attach(cars)
+```
+
+
+b) Make a histogram of the prices of cars in the data.  Describe the shape of the distribution.
+```{r}
+hist(Price)
+```
+
+-The Price data is skewed to the right
+---------------------------------
+
+c) What proportion of cars in the data set cost between $10,000 and $20,000?
+
+```{r}
+length(which((Price > 10000)&(Price<20000)))/length(Price)
+```
+15.4%
+
+---------------------------------
+d) Find the mean and median price.  Which is larger?  Why does this make sense?
+
+```{r}
+mean(Price)
+median(Price)
+```
+
+Mean is greater than the median. This makes sense in a right-skewed distribution because the mean is more skewed towards outliers. Since the outliers are to the right, the mean would be pulled towards the right (greater on the x-axis). 
+
+---------------------------------
+e) Add a vertical line to the histogram to denote the mean price.  Add a legend to the graph.
+
+```{r}
+hist(Price)
+abline(v=mean(Price),col="red",lw=3)
+legend("topright", c("Price-mean"), col="red", lwd=3)
+```
+
+---------------------------------
+f) Transform the price to reduce its skew, and make a histogram of the transformed price.  Fit a normal distribution to the transformed price, and graph the normal density curve on the same plot as the histogram.  How well does a normal distribution fit the transformed data?
+
+```{r}
+tPrice = log(Price)
+hist(tPrice)
+```
+
+```{r}
+qqnorm(tPrice)
+qqline(tPrice,col='red',lw=4)
+```
+
+The hist and qqplot visuals show that the price is more normal than the untransformed data, but still skewed to the right.
+
+---------------------------------
+g) Make a scatterplot of transformed price versus engine size, measured in liters.  Describe the relationship between these two variables.
+
+```{r}
+plot(Liter,tPrice)
+```
+
+Cars with larger engines tend to have a higher Price. This is a positive correlation.
+
+---------------------------------
+h) Find the correlation between transformed price and engine size in liters.  Explain what it tells us.
+
+
+```{r}
+cor(tPrice,Liter)
+```
+
+Correlation is measured on a scale of -1 to 1, with -1 being a strong negative correlation, 0 being no correlation, and 1 being a strong positive correlation. Since the correlation is about .6, there is indeed a positive correlation between the transformed price and engine size, which means cars with larger engines tend to cost more, though other factors may be at play. 
+
+---------------------------------
+i) Modify your scatterplot in part g to use one color of plotting symbol for cars with leather interiors, and a different color for cars without leather interiors.  Add a legend to your plot.
+
+```{r}
+
+c_vec <- c()
+c_vec[which(Leather==0)]="red"
+c_vec[which(Leather==1)]="blue"
+plot(Liter,tPrice,col=c_vec)
+legend("bottomright", c("Leather","noLeather"), col=c("blue","red"), lwd=3)
+```
+
+
+-------------------------------------
+j) Make a barplot of the types (Sedan, Hatchback, etc.) of cars in the data.
+
+```{r}
+barplot(table(Type))
+```
+
+-------------------------------------
+k) Make a barplot of the types of cars and whether they have leather interiors.  Add a legend to your plot.
+
+```{r}
+dTable <- table(Leather,Type)
+barplot(dTable,col=c("red","blue"))
+legend("topleft",fill=c("red","blue"),legend = c("noLeather","Leather"))
+```
+
+-------------------------------------
+l) Make a boxplot of (untransformed) price by type of car.  In words, summarize what it shows.
+
+```{r,fig.height=7 ,fig.width=7}
+boxplot(Price~Type, col = heat.colors(length(levels(Type))))
+```
+
+Hatchbacks and Wagons are normally distributed. Convertibles, Coupes and Sedans are skewed to the right. Convertibles generally cost the most, and hatchbacks the least. 
+---------------------
+m)  Create two different histograms in a vertical stack that allow comparison of (untransformed) price according to whether the car has a leather interior.  Use the same horizontal axis for each to enable comparison, and use informative labels for each graph and the x-axis.
+
+```{r fig.height = 7,fig.width=6}
+par(mfrow=c(2,1))
+l <- Price[which(Leather == 1)]
+nl <- Price[which(Leather == 0)]
+hist(l,col='blue',main="Price Frequency Leather",xlim=c(5000,80000),ylim=c(0,150))
+legend("topright",fill=c("blue","red"),legend = c("Leather","noLeather"))
+hist(nl,col='red',main="Price Frequency noLeather",xlim=c(5000,80000),ylim=c(0,150))
+
+par(mfrow=c(1,1))
+```
+
+---------------------
+n) Create a side-by-side histogram to allow the same comparison as in part m.  Add a legend to your plot.
+
+
+*note: I could not render multhist via the knit function in r-studio for some reason
+l <- Price[which(Leather == 0)]
+nl <- Price[which(Leather == 1)]
+multhist( list(nl,l), freq = F, col=c("red", "blue") )
+
+-------------------------------------------
+-------------------------------------------
+2.	Analyzing the running speed of mammals
+-------------------------------------------
+-------------------------------------------
+
+```{r}
+#install.packages("quantreg")
+```
+
+```{r}
+data(Mammals, package="quantreg")
+```
+
+```{r}
+str(Mammals)
+#attach(Mammals)
+```
+
+--------------------------------------------------
+b) Decide whether either of the quantitative variables should be transformed.  Justify your decision using appropriate plots and/or descriptive statistics.
+
+```{r fig.height = 2.5,fig.width=7}
+par(mfrow=c(1,2))
+hist(weight,breaks=30,col='red')
+hist(speed,breaks=30,col='blue')
+```
+
+Weight should be log-transformed, as it is heavily skewed to the right. This looks like a logarithmic distribution. 
+
+```{r fig.height = 2.5,fig.width=7}
+logWeight <- log(weight)
+par(mfrow=c(1,2))
+hist(weight,breaks=30,col='red',main='Weight')
+hist(logWeight,breaks=30,col='red',main='logWeight')
+```
+
+--------------------------------------------------
+c. Use appropriate graphs and/or descriptive statistics to describe the relationship between maximum land speed and body weight. Does it matter whether the animal is a “hopper” (such as a kangaroo)? Explain why you chose the graphs and/or statistics that you chose.
+
+```{r}
+cor(logWeight,speed)
+sd(speed)
+sd(logWeight)
+```
+
+Weight and Speed have a positive correlation of about .58, which means that as weight goes up, the speed of the animal is generally higher. The standard deviation of Speed is 26.7, which is high.  There is a high level of variance inherent to the relationship between Speed and Weight
+
+```{r}
+hop<-c()
+hop[which(Mammals$hoppers==TRUE)]='blue'
+hop[which(Mammals$hoppers==FALSE)]='red'
+
+plot(logWeight,speed,col=hop,pch=c(16,16),main='Speed vs Weight')
+legend("topleft",fill=c("blue","red"),legend = c("Hopper","notHopper"))
+```
+
+Looking at the graph above shows that beyond a certain weight, the correlation turns negative and heavier animals become slower. 
+
+*The plot of Speed vs Weight was chosen because it makes it easy to see if there is a shape to the relationship that could be mathematically modeled. Standard deviation was looked at to see the spread of each axis. A higher spread makes the outcome of this relationship more difficult to predict. Can we draw additional insights from the data by slicing it up differently? 
+
+```{r fig.height = 8,fig.width=5}
+
+s_hop <- speed[which(Mammals$hoppers==TRUE)]
+s_no_hop <- speed[which(Mammals$hoppers==FALSE)]
+lw_hop <- logWeight[which(Mammals$hoppers==TRUE)]
+lw_no_hop <- logWeight[which(Mammals$hoppers==FALSE)]
+  
+par(mfrow=c(2,1))
+plot(lw_hop,s_hop,col="blue",pch=c(16,16),main="Hopper Weight vs")
+plot(lw_no_hop,s_no_hop,col="red",pch=c(16,16))
+```
+
+```{r}
+print(c("Corr Hop:",cor(lw_hop,s_hop)))
+print(c("Corr NoHop:",cor(lw_no_hop,s_no_hop,)))
+```
+
+When the data is sliced into hoppers vs non-hoppers, the visual and calculated correlation of the hopper speed and weight is much stronger than for non-hoppers.  
+
+```{r}
+print("Hopper Speed")
+summary(s_hop)
+print(c("Max-Min:",(max(s_hop)-min(s_hop))))
+print(c("sd:",sd(s_hop)))
+print(c("IQR:",IQR(s_hop)))
+cat("\n")
+
+print("Non-Hopper Speed")
+summary(s_no_hop)
+print(c("Max-Min:",(max(s_no_hop)-min(s_no_hop))))
+print(c("sd:",sd(s_no_hop)))
+print(c("IQR:",IQR(s_no_hop)))
+cat("\n")
+
+```
+
+Hoppers have a higher mean and median speed (central tendancy), which suggests that hoppers are faster. 
+
+---------------------------
